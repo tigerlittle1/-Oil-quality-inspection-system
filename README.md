@@ -1,8 +1,10 @@
 # -Oil-quality-inspection-system
 
-運用手機加速度及光線感測器檢測油質。
+運用手機加速度及光線感測器檢測油質
+==
 
 App
+--
   App_Client.py為可在pc及手機上執行之結果觀測介面。
   還境:
   python 3.7
@@ -17,9 +19,12 @@ App
   Client.py為網路連線client處理之模組，需與App_Client.py及Sensor_Client.py同時使用
   
 Server
+--
   Server.py為在server上執行之連線server，接收cilent資訊作處理及回應
   還境:
   python 3.7
   
 架構圖
+--
+[image]()
 
