@@ -26,5 +26,5 @@ Server
   
 架構圖
 --
-[image](架構圖.png)
+![image](架構圖.png)
 
