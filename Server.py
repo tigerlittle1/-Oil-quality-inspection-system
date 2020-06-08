@@ -4,7 +4,7 @@ import math
 import os
 class Server():
     def __init__(self):
-        self.HOST = config['Server']['HOST']  # 本機預設伺服器
+        self.HOST = "0.0.0.0"  # 本機預設伺服器
         self.PORT = int(os.environ.get('PORT'))
 
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
