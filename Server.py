@@ -1,7 +1,7 @@
 import socket
 import threading
 import math
-
+import os
 class Server():
     def __init__(self):
         self.HOST = "127.0.0.1"  # 本機預設伺服器
