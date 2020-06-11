@@ -1,11 +1,11 @@
 import socket
 import threading
 import math
-import os
+
 class Server():
     def __init__(self):
         self.HOST = "127.0.0.1"  # 本機預設伺服器
-        self.PORT = int(os.environ.get('PORT'))
+        self.PORT = 8080
 
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server.bind((self.HOST, self.PORT))
@@ -38,8 +38,8 @@ class Server():
 
                         for sensor in ("s_a","s_l"):
                             try:
-                                self.sensor_connect[sensor].sendall("3".encode())
-                                sensor_message[sensor] = self.sensor_connect[sensor].recv(1024).decode()
+                                self.sensor_connect[sensor][1].sendall("3".encode())
+                                sensor_message[sensor] = self.sensor_connect[sensor][1].recv(1024).decode()
                                 print(sensor_message[sensor])
                             except:
                                 print(sensor,"is close")
@@ -48,11 +48,11 @@ class Server():
 
                         if sensor_message["s_a"] != None and sensor_message["s_l"] != None :#兩個sensor都有連上
                             ay = sensor_message["s_a"]
-                            l = sensor_message["s_l"]
+                            l = sensor_message["s_l"].split()
                             serverMessage = self.caculate_oil(ay,l)  # 計算函式
                         else:#其中一個sensor沒有連上
                             if sensor_message["s_l"] != None :
-                                serverMessage = 'Accelerometer sensor error,\nLight acid value:' + str(self.caculate_lige(sensor_message["s_l"]))
+                                serverMessage = 'Accelerometer sensor error,\nLight acid value:' + str(self.caculate_lige(sensor_message["s_l"].split()))
                             elif sensor_message["s_a"] != None :
                                 serverMessage = 'Light sensor error,\nAccelerometer acid value:'+str(self.caculate_Accelerometer(sensor_message["s_a"]))
                             else:
@@ -60,6 +60,7 @@ class Server():
                         print("send '{}' to {}".format(serverMessage,ip))
                         temp = []
                         print(self.APP_client)
+
                         for c in self.APP_client:
                             try:
                                 c.sendall(serverMessage.encode())
@@ -76,13 +77,13 @@ class Server():
         new_l = self.caculate_lige(l)
         new_ay = self.caculate_Accelerometer(ay)
         if new_l > 2:
-            serverMessage = "change oil\nAcid value: " + str(round(ay,5)) + "\nlux :" + str(round(new_l,5))
+            serverMessage = "change oil \nAcid value: " + str(round(new_ay,5)) + " \nlux :" + str(round(new_l,5))
         else:
-            serverMessage = "oil is good\nAcid value: " + str(round(ay,5)) + "\nlux :" + str(round(new_l,5))
+            serverMessage = "oil is good \nAcid value: " + str(round(new_ay,5)) + " \nlux :" + str(round(new_l,5))
         return serverMessage
     def caculate_lige(self,l):#計算光線酸價
         try:
-            l = float(l)
+            l = float(l[0])
         except:
             l = 0
         new_l = l * 0.0003 + 2.8681#在此填上光線計算酸價公式
@@ -94,22 +95,26 @@ class Server():
         except:
             ay = 0
         new_ay = ay * 0.0003 + 2.8681#在此填上加速度計算酸價公式
-        return round(new_ay,10)
+        return round(new_ay,2)
+
     def accetp_connet(self):
         while 1:
             try:
                 conn, addr = self.server.accept()
-
                 name = conn.recv(1024).decode()
                 if name == "s_a":  # sensor_Acceleration
                     print("sensor_Acceleration connect,IP: {}".format(addr))
-                    self.sensor_connect[name] = conn
+                    self.sensor_connect[name] = [addr,conn]
+                    if self.sensor_connect[name][1] == self.sensor_connect["s_l"][1]:
+                        self.sensor_connect["s_l"] = None
                 elif name == "s_l":  # sensor_Luminosity
                     print("sensor_Luminosity connect,IP: {}".format(addr))
-                    self.sensor_connect[name] = conn
+                    self.sensor_connect[name] = [addr,conn]
+                    if self.sensor_connect[name][1] == self.sensor_connect["s_a"][1]:
+                        self.sensor_connect["s_a"] = None
                 else:
                     print("Accept APP ,IP: {}".format(addr))
-                    conn.sendall("Accept APP".encode())
+                    # conn.sendall("Accept APP".encode())
                     appclient = threading.Thread(target=self.clientThreadIn, args=(conn, addr))
                     appclient.start()
                     self.APP_client.append(conn)
