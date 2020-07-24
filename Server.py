@@ -48,11 +48,12 @@ class Server():
 
                         if sensor_message["s_a"] != None and sensor_message["s_l"] != None :#兩個sensor都有連上
                             ay = sensor_message["s_a"]
-                            l = sensor_message["s_l"].split()
+                            l = sensor_message["s_l"]
                             serverMessage = self.caculate_oil(ay,l)  # 計算函式
+
                         else:#其中一個sensor沒有連上
                             if sensor_message["s_l"] != None :
-                                serverMessage = 'Accelerometer sensor error,\nLight acid value:' + str(self.caculate_lige(sensor_message["s_l"].split()))
+                                serverMessage = 'Accelerometer sensor error,\nLight acid value:' + str(self.caculate_lige(sensor_message["s_l"]))
                             elif sensor_message["s_a"] != None :
                                 serverMessage = 'Light sensor error,\nAccelerometer acid value:'+str(self.caculate_Accelerometer(sensor_message["s_a"]))
                             else:
@@ -81,11 +82,17 @@ class Server():
         else:
             serverMessage = "oil is good \nAcid value: " + str(round(new_ay,5)) + " \nlux :" + str(round(new_l,5))
         return serverMessage
-    def caculate_lige(self,l):#計算光線酸價
+    def caculate_lige(self,l):#計算光線酸價[取得的亮度,酸價1,亮度1,酸價2,亮度2]
+        l = l.split()
         try:
-            l = float(l[0])
+            lux = float(l[0]) #實際測到之光線
+            acid1 = float(l[1]) #設定之調整酸價1
+            lux1 = float(l[2]) #調整之光線1
+            acid2 = float(l[3]) #設定之調整酸價2
+            lux2 = float(l[4]) #調整之光線2
         except:
             l = 0
+
         new_l = l * 0.0003 + 2.8681#在此填上光線計算酸價公式
         return round(new_l,2)
 
