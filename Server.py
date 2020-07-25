@@ -40,7 +40,7 @@ class Server():
                             try:
                                 self.sensor_connect[sensor][1].sendall("3".encode())
                                 sensor_message[sensor] = self.sensor_connect[sensor][1].recv(1024).decode()
-                                print(sensor_message[sensor])
+                                print("{} message is {}".format(sensor,sensor_message[sensor]))
                             except:
                                 print(sensor,"is close")
                                 self.sensor_connect[sensor] = None
@@ -58,22 +58,30 @@ class Server():
                                 serverMessage = 'Light sensor error,\nAccelerometer acid value:'+str(self.caculate_Accelerometer(sensor_message["s_a"]))
                             else:
                                 serverMessage = "sensor error"
-                        print("send '{}' to {}".format(serverMessage,ip))
-                        temp = []
-                        print(self.APP_client)
 
-                        for c in self.APP_client:
-                            try:
-                                c.sendall(serverMessage.encode())
-                                temp.append(c)
-                            except :
-                                pass
-                        self.APP_client = temp
-
-            except Exception as e:
+            except socket.error:
                 conn.close()
-                print("Client IP : {} is close , {}".format(ip,e))
+                print("Client IP : {} is close , {}".format(ip, e))
                 break
+            except Exception as e:
+                serverMessage = str(e)
+                # conn.close()
+                # print("Client IP : {} is close , {}".format(ip,e))
+                # break
+
+            print("send '{}' to {}".format(serverMessage, ip))
+            temp = []
+            print(self.APP_client)
+
+            for c in self.APP_client:
+                try:
+                    c.sendall(serverMessage.encode())
+                    temp.append(c)
+                except :
+
+                    pass
+            self.APP_client = temp
+
     def caculate_oil(self,ay,l):#當兩個感測器都有連上線
         new_l = self.caculate_lige(l)
         new_ay = self.caculate_Accelerometer(ay)
@@ -93,7 +101,8 @@ class Server():
         except:
             l = 0
 
-        new_l = l * 0.0003 + 2.8681#在此填上光線計算酸價公式
+        new_l = acid2-((lux - lux2)/(lux1-lux2))*(acid2 - acid1)#在此填上光線計算酸價公式
+        print(new_l)
         return round(new_l,2)
 
     def caculate_Accelerometer(self,ay):#計算加速度酸價
@@ -129,5 +138,3 @@ class Server():
                 pass
 
 server = Server()
-
-
