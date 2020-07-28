@@ -61,25 +61,21 @@ class Server():
 
             except socket.error:
                 conn.close()
-                print("Client IP : {} is close , {}".format(ip, e))
+                print("Client IP : {} is close".format(ip))
                 break
             except Exception as e:
                 serverMessage = str(e)
-                # conn.close()
-                # print("Client IP : {} is close , {}".format(ip,e))
-                # break
 
-            print("send '{}' to {}".format(serverMessage, ip))
             temp = []
             print(self.APP_client)
-
             for c in self.APP_client:
                 try:
-                    c.sendall(serverMessage.encode())
+                    c[1].sendall(serverMessage.encode())
                     temp.append(c)
+                    print("send '{}' to {}".format(serverMessage, c[0]))
                 except :
-
                     pass
+
             self.APP_client = temp
 
     def caculate_oil(self,ay,l):#當兩個感測器都有連上線
@@ -128,12 +124,11 @@ class Server():
                     self.sensor_connect[name] = [addr,conn]
                     if self.sensor_connect[name][1] == self.sensor_connect["s_a"][1]:
                         self.sensor_connect["s_a"] = None
-                else:
+                elif name == "APP":
                     print("Accept APP ,IP: {}".format(addr))
-                    # conn.sendall("Accept APP".encode())
                     appclient = threading.Thread(target=self.clientThreadIn, args=(conn, addr))
                     appclient.start()
-                    self.APP_client.append(conn)
+                    self.APP_client.append([addr,conn])
             except:
                 pass
 
